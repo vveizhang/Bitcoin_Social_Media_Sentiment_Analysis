@@ -23,7 +23,7 @@ if input_text == "":
     input_text = example_text
 
 if st.button("Run Bert!"):
-    if len(input_text) < 300:
+    if len(input_text) < 5:
         st.write("Please input more text!")
     else:
         with st.spinner("Running..."):
