@@ -3,7 +3,7 @@ from funcs import load_model, input_fn, run_model
 
 st.title("Bert-based bitcoin social media sentiment analysis")
 st.write('This app uses Bert to identify the sentiment of any bitcoin social media')
-st.markdown('The source code for this app can be found in this GitHub repo: [GPT2-News-Classifier](https://github.com/vveizhang/transformer_predict_circRNA).')
+st.markdown('The source code for this app can be found in this GitHub repo: [Bert-Sentiment-Analysis](https://github.com/vveizhang/Bitcoin_Social_Media_Sentiment_Analysis).')
 
 example_text = """
 "I think bitcoin is worthless. I will never buy it"
@@ -17,7 +17,7 @@ input_text = st.text_area(
     )
 
 # load model here to save
-model = load_model()
+model = load_model(path="./model/Bert-btc-model.pth")
 
 if input_text == "":
     input_text = example_text
