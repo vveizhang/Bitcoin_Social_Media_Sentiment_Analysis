@@ -26,7 +26,7 @@ class SentimentClassifier(nn.Module):
 @st.cache
 def load_model(path:str):    
     model = SentimentClassifier(3).to(device)
-    model.load_state_dict(torch.load(path, map_location=torch.device('cpu')))
+    model.load_state_dict(torch.load(path))
     model.eval()
     return model
 
