@@ -22,7 +22,7 @@ RUN apt-get  -qq -y install wget
 RUN wget -O ./model/Bert-btc-model.pth "https://www.dropbox.com/s/0nq3ukfhe99t9pv/model.pth?dl=1"
 
 # cmd to launch app when container is run
-CMD streamlit run ./src/app.py
+CMD streamlit run ./src/app.py --server.port 8052
 
 # streamlit-specific commands for config
 ENV LC_ALL=C.UTF-8
