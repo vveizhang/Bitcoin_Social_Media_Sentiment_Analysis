@@ -2,10 +2,10 @@
 FROM python:3.7.4-slim-stretch
 
 # exposing default port for streamlit
-EXPOSE 8501
+EXPOSE 8502
 
 # making directory of app
-WORKDIR /streamlit-Bert-Sentiment-Analysis-app
+WORKDIR /streamlit-Transformer-RNA-classifier-app
 
 # copy over requirements
 COPY requirements.txt ./requirements.txt

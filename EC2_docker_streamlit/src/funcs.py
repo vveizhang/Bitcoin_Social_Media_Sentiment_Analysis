@@ -24,11 +24,11 @@ class SentimentClassifier(nn.Module):
         return self.out(output)
 
 @st.cache
-def load_model(path:str):    
+def load_model(model_dir="https://www.dropbox.com/s/0nq3ukfhe99t9pv/model.pth?dl=1"):    
     model = SentimentClassifier(3).to(device)
-    model.load_state_dict(torch.load(path))
-    model.eval()
-    return model
+    with open(model_dir, "rb") as f:
+        model.load_state_dict(torch.load(f))
+    return model.to(device)
 
 
 def input_fn(input_data, content_type= 'application/json'):

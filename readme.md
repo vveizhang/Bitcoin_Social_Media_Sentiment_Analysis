@@ -13,24 +13,29 @@
     - [1.2 Sentiment Analysis](#12-sentiment-analysis)
   - [1.3 Bert](#13-bert)
   - [2. Dataset](#2-dataset)
-  - [3. Demo](#3-demo)
-  - [4. Training and deployment of Bert on SageMaker](#4-training-and-deployment-of-bert-on-sagemaker)
+  - [3. Bert Sentiment Analysis Demo](#3-bert-sentiment-analysis-demo)
+  - [4. Training and deployment of Bert](#4-training-and-deployment-of-bert)
     - [4.1. Create an Amazon SageMaker notebook instance](#41-create-an-amazon-sagemaker-notebook-instance)
     - [4.2. Training and deployment](#42-training-and-deployment)
       - [4.2.1 Load the pre-trained Bert model and tokenizer](#421-load-the-pre-trained-bert-model-and-tokenizer)
       - [4.2.2 Model Hyperparameters Tuning using wandb sweep](#422-model-hyperparameters-tuning-using-wandb-sweep)
       - [4.2.3 Deploy the model](#423-deploy-the-model)
-    - [4.3. The code](#43-the-code)
-    - [4.4. Use AWS lambda to invoke the SageMaker endpoint](#44-use-aws-lambda-to-invoke-the-sagemaker-endpoint)
-  - [5. Use Postman to test the endpoint](#5-use-postman-to-test-the-endpoint)
-  - [6. Containerizing and Deployment using Amazon EC2 and Docker](#6-containerizing-and-deployment-using-amazon-ec2-and-docker)
-    - [6.1. Create an Amazon EC2 instance](#61-create-an-amazon-ec2-instance)
-    - [6.2. Running Docker container in cloud](#62-running-docker-container-in-cloud)
-  - [7. Summary](#7-summary)
-  - [8. References](#8-references)
+      - [4.2.4 Containerizing and Deployment using Amazon EC2 and Docker](#424-containerizing-and-deployment-using-amazon-ec2-and-docker)
+  - [5. Predict Bitcoin price with historical bitcoin data and sentiment data](#5-predict-bitcoin-price-with-historical-bitcoin-data-and-sentiment-data)
+    - [5.1 Convert sentiment prediction data into sentiment counts in every 2 hours](#51-convert-sentiment-prediction-data-into-sentiment-counts-in-every-2-hours)
+    - [5.2 Download historical Bitcoin price data and convert into 2 hour windows](#52-download-historical-bitcoin-price-data-and-convert-into-2-hour-windows)
+    - [5.3 Merge two dataset into one in 2 hour interval.](#53-merge-two-dataset-into-one-in-2-hour-interval)
+  - [6. Time Series Forecasting of Bitcoin Price](#6-time-series-forecasting-of-bitcoin-price)
+    - [6.1. LSTM model](#61-lstm-model)
+    - [6.2. Run the LSTM model to predic Bitcoin price of next day on AWS EC2](#62-run-the-lstm-model-to-predic-bitcoin-price-of-next-day-on-aws-ec2)
+  - [7. Automation](#7-automation)
+    - [7.1 AWS Event bridge triger Lambda to scrape the reddit comments and save to AWS S3.](#71-aws-event-bridge-triger-lambda-to-scrape-the-reddit-comments-and-save-to-aws-s3)
+    - [7.2 AWS EC2 Crontab automaticly run "main.py".](#72-aws-ec2-crontab-automaticly-run-mainpy)
+  - [8. Dashboard](#8-dashboard)
+  - [9. References](#9-references)
   - [Contact](#contact)
 
-Text classification is a very common task in NLP. It can be used in many applications from spam filtering, sentiment analysis to customer support automation and news categorization. Using Deep Learning language models for large-scale text classification tasks has become quite popular in the industry recently, especially so with the emergence of [Transformers](https://en.wikipedia.org/wiki/Transformer_(machine_learning_model)) in recent years. Because the size of these Transformer models are often too large to train on local machines, cloud computing platforms (e.g. [GCP](https://cloud.google.com/), [AWS](https://aws.amazon.com/), [Azure](https://azure.microsoft.com/), [Alibabacloud](https://us.alibabacloud.com/)) are commonly used. Therefore in this blog, I want to demonstrate how to train and deploy a fine-tuned GPT-2 model for text classification tasks using Amazon SageMaker.
+Empolyed python, Bert, AWS EC2, lambda, crontab and Event bridge, I build a prediction system that will automatically download reddit comments about bitcoin, sentimental analysis of the comments, then use these sentiment data to predict bitcoin price, and update the result daily to a dashboard here: [dashboard](http://18.224.251.221:8080/)
 
 ## 1. Introduction
 
@@ -39,10 +44,9 @@ Text classification is a very common task in NLP. It can be used in many applica
 Bitcoin is a digital currency which operates free of any central control or the oversight of banks or governments.It has a distributed network system, where people can control their funds in a transparent way. It is the leading cryptocurrency and has the highest market capitalization among digital currencies. Unlike repeating phenomena like weather, cryptocurrency values do not follow a repeating pattern and mere past value of Bitcoin does not reveal any secret of future Bitcoin value. 
 
 <p align="center">
-<img src="https://machinelearningmastery.com/wp-content/uploads/2021/08/attention_research_1-727x1024.png">
+<img src="/imgs/Bitcoin.jpeg">
 <br>
-<em>The Encoder-Decoder Structure of the Transformer Architecture
-Taken from</a> on <a href="https://arxiv.org/abs/1706.03762">"Attention Is All You Need"</a></em></p>
+<em>Bitcoin</em></p>
 
 The Transformer architecture follows an encoder-decoder structure, but does not rely on recurrence and convolutions in order to generate an output. In a nutshell, the task of the encoder, on the left half of the Transformer architecture, is to map an input sequence to a sequence of continuous representations, which is then fed into a decoder. 
 
@@ -57,9 +61,9 @@ Humans follow general sentiments and technical analysis to invest in the market.
 BERT is the first deeply bidirectional, unsupervised language representation, pre-trained using only a plain text corpus. Pre-trained representations can either be context-free or contextual, and contextual representations can further be unidirectional or bidirectional. Context-free models such as word2vec or GloVe generate a single word embedding representation for each word in the vocabulary. BERT represents “bank” using both its previous and next context starting from the very bottom of a deep neural network, making it deeply bidirectional.
 
 <p align="center">
-<img src="https://www.frontiersin.org/files/Articles/445805/fphar-10-00428-HTML/image_m/fphar-10-00428-g001.jpg">
+<img src="/imgs/Bert.png">
 <br>
-<em>Schematic representation of circRNAs generation and function. from https://doi.org/10.3389/fphar.2019.00428</em></p>
+<em>Bert</em></p>
 
 ## 2. Dataset
 
@@ -77,7 +81,8 @@ Here shows how the scraped comment data looks like:
 <img src="/imgs/Reddit_Comments.png">
 <br>
 <em>scraped reddit comment data</em></p>
-## 3. Demo
+
+## 3. Bert Sentiment Analysis Demo
 
 I built an [Online bitcoin comments sentiment analyzer](http://18.118.15.97:8501/) using [Streamlit](https://streamlit.io/) running the trained model. You can input any comments about Bitcoin, the API will do the sentiment analysis for you.
 
@@ -86,16 +91,12 @@ I built an [Online bitcoin comments sentiment analyzer](http://18.118.15.97:8501
 <br>
 <em>Image by Author</em></p>
 
-## 4. Training and deployment of Bert on SageMaker
+
+## 4. Training and deployment of Bert
 
 ### 4.1. Create an Amazon SageMaker notebook instance
 
 Follow this [hands-on tutorial](https://aws.amazon.com/getting-started/hands-on/build-train-deploy-machine-learning-model-sagemaker/) from AWS to create an Amazon SageMaker notebook instance. Use "*transformer*" as the **instance name**, and "*ml.t3.medium*" as the **instance type**.
-
-<p align="center">
-<img src="/imgs/Notebook_instance.png">
-<br>
-<em>Image by Author</em></p>
 
 ### 4.2. Training and deployment
 #### 4.2.1 Load the pre-trained Bert model and tokenizer
@@ -207,267 +208,223 @@ def get_predictions(model, data_loader):
   return review_texts, predictions, prediction_probs, real_values
 ```
 
-
-### 4.3. The code
-
-Since we are building and training a PyTorch model in this project, it is recommended by [**SageMaker Python SDK**](https://sagemaker.readthedocs.io/en/stable/frameworks/pytorch/using_pytorch.html#train-a-model-with-pytorch) to prepare a separate `train.py` script to construct and store model functions used by SageMaker. Since all the pretrained model are not suitable for DNA/RNA sequence analysis, we will write our own model.
-```python
-def pad_sequences(seqs,max_length=400,unk_index=64):
-    pad_seqs=[]
-    for seq in seqs:
-        if len(str(seq))<max_length:
-            pad_seqs.append(str(seq) + "0" * (max_length - len(str(seq))))
-        if len(str(seq))>=max_length:
-            pad_seqs.append(seq[0:max_length])           
-    return pad_seqs
-
-def build_kmers(sequence, ksize):
-    kmers = []    
-    n_kmers = len(sequence) - ksize + 1
-    for i in range(n_kmers):
-        kmer = sequence[i:i + ksize]
-        kmers.append(kmer)
-    return kmers
-
-def Kmers(sequence): 
-    Kmers=[]   
-    for seq in sequence:
-        Kmers.append(build_kmers(seq,5))
-    return Kmers
-```
-
-
-The `pad_sequences` function will pad all the input sequence into the same length (max_length), the `build_kmers` and `Kmers` functions will be used to build the vocabulary. A DNA sequence can be viewed as a collection of k-mers by breaking the sequence into nucleotide substrings of length k, as illustrated in the Figure.
-
-The `TextTransformer` class in *train.py* is responsible for building a classifier from the scratch. Instead of a positional encoding, I did a positional embedding here. So this model has two embedding steps: word embeddings and position embeddings.
-
-```python
-class TextTransformer(nn.Module):
-  def __init__(self):
-    super(TextTransformer,self).__init__()
-    self.wordEmbeddings = nn.Embedding(vocab_size,seq_len)
-    self.positionEmbeddings = nn.Embedding(seq_len,posEmbSize)
-    self.transformerLayer = nn.TransformerEncoderLayer(seq_len+posEmbSize,2) 
-    self.linear1 = nn.Linear(seq_len+posEmbSize,  64)
-    self.linear2 = nn.Linear(64,  1)
-    self.linear3 = nn.Linear(seq_len,  16)
-    self.linear4 = nn.Linear(16,  1)
-    
-  def forward(self,x):
-    positions = (torch.arange(0,seq_len).reshape(1,seq_len) + torch.zeros(x.shape[0],seq_len)).to(device) 
-    # broadcasting the tensor of positions 
-    sentence = torch.cat((self.wordEmbeddings(x.long()),self.positionEmbeddings(positions.long())),axis=2)
-    attended = self.transformerLayer(sentence)
-    linear1 = F.relu(self.linear1(attended))
-    linear2 = F.relu(self.linear2(linear1))
-    linear2 = linear2.view(-1,seq_len) # reshaping the layer as the transformer outputs a 2d tensor (or 3d considering the batch size)
-    linear3 = F.relu(self.linear3(linear2))
-    out = torch.sigmoid(self.linear4(linear3))
-    return out
-```
-
-The `model_fn`,`input_fn`,`predict_fn`,`output_fn`,`save_model` functions in *train.py* will be responsible for the communications to the AWS sagemaker APIs to load the model weights/parameters, encode input, make predictions, output the predict results and save model weights/parameters.
-
-```python
-def model_fn(model_dir):
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = myTransformer.to(device)
-    with open(os.path.join(model_dir, "model.pth"), "rb") as f:
-        model.load_state_dict(torch.load(f))
-    return model.to(device)
-
-def input_fn(input_data, content_type= 'application/json'):
-    input = json.loads(input_data)
-    seq = input["text"]
-    seq = seq.upper().replace("U","T")
-    if len(seq) < 400:
-        seq =  str(seq) + "0" * (400 - len(str(seq)))
-    if len(seq) >= 400:
-        seq =  seq[0:400] 
-    kmers = build_kmers(seq,5)
-    src_vocab = get_vocab('https://sagemaker-us-east-2-411668307327.s3.us-east-2.amazonaws.com/circRNA/vocab.csv')
-    tokens=[src_vocab[kmer] for kmer in kmers]
-    return torch.tensor(tokens, dtype=torch.float32).to(device)
-
-def predict_fn(input_object, model):
-    with torch.no_grad():       
-        return model(input_object.unsqueeze(0).to(device))
-
-def output_fn(prediction, accept="text/plain"):
-    result = np.round(prediction.cpu().item())   
-    return str(result)
-
-# save model
-def save_model(model, model_dir):
-    logger.info("Saving the model.")
-    path = os.path.join(model_dir, "model.pth")
-    torch.save(model.cpu().state_dict(), path)
-```
-
-When the traning is finished. You will see the following:
-
-<p align="center">
-<img src="/imgs/sagemaker_endpoints.png">
-<br>
-<em>Image by Author</em></p>
-
-Then deploy the trained model into the inference endpoint.
-
-### 4.4. Use AWS lambda to invoke the SageMaker endpoint
-
-Create an AWS lambda function `predict_circRNA_transformer` to invoke the inference endpoint. Below is the code for the lambda handler:
-```python
-import os
-import io
-import boto3
-import json
-import csv
-
-# grab environment variables
-ENDPOINT_NAME = os.environ['ENDPOINT_NAME']
-runtime= boto3.client('runtime.sagemaker')
-
-def lambda_handler(event, context):
-    print("Received event: " + json.dumps(event, indent=2))
-    response = runtime.invoke_endpoint(EndpointName=ENDPOINT_NAME,
-                                       ContentType='application/json',
-                                       Body=json.dumps(event))
-    result=response['Body'].read().decode()
-    print(result)
-    predicted_label = 'circRNA' if result == 1 else 'lincRNA'    
-    return predicted_label
-```
-
-Use AWS REST API `predict_circRNA` to create an application program interface (API) that uses HTTP requests to access and use data. 
-
-<p align="center">
-<img src="/imgs/API_gateway_lambda.png">
-<br>
-<em>Image by Author</em></p>
-
-## 5. Use Postman to test the endpoint
-Now i have everything on AWS, next is to test the HTTP requests to do the prediction. Usually we use Postman to do the test.
-<p align="center">
-<img src="/imgs/postMan.png">
-<br>
-<em>Image by Author</em></p>
-
-## 6. Containerizing and Deployment using Amazon EC2 and Docker
+#### 4.2.4 Containerizing and Deployment using Amazon EC2 and Docker
 
 Docker is an open platform for developing, shipping, and running applications. Docker enables you to separate your applications from your infrastructure so you can deliver software quickly. With Docker, you can manage your infrastructure in the same ways you manage your applications. By taking advantage of Docker’s methodologies for shipping, testing, and deploying code quickly, you can significantly reduce the delay between writing code and running it in production. Here I also deployed the trained transformer model using Docker on Amazon EC2 instance.
-
-### 6.1. Create an Amazon EC2 instance
-
-Follow [this tutorial](https://docs.aws.amazon.com/efs/latest/ug/gs-step-one-create-ec2-resources.html) from AWS to create and launch an Amazon EC2 instance. A few customized settings for this project:
-
-- In **Step 1: Choose an Amazon Machine Image (AMI)**, choose the **Deep Learning AMI (Ubuntu) AMI**. Using this image does introduce a bit of extra overhead, however, it guarantees us that git and Docker will be pre-installed which saves a lot of trouble.
-- In **Step 2: Choose an Instance Type**, choose **t2.medium** to ensure we have enough space to build and run our Docker image.
-- In **Step 6: Configure Security Group**, choose **Add Rule** and create a custom tcp rule for port **8501** to make our streamlit app publicly available.
-- After clicking **Launch**, choose **Create a new key pair**, input "**ec2-transformer**", and click "**Download Key Pair**" to save `ec2-transformer.pem` key pair locally.
-
-### 6.2. Running Docker container in cloud
-
-After launching the EC2 instance, use SSH to connect to the instance:
 
 ```bash
 ssh -i ec2-gpt2-streamlit-app.pem ec2-user@your-instance-DNS-address.us-east-1.compute.amazonaws.com
 ```
 
-Then, copy my code into the cloud using `git`:
+Then, copy the code into the cloud using git:
 
-```bash
-git clone https://github.com/vveizhang/transformer_predict_circRNA.git
-```
-
-Afterwards, go into the `ec2-docker` folder to build and run the image:
-
+git clone https://github.com/vveizhang/Bitcoin_Social_Media_Sentiment_Analysis.git
+Afterwards, go into the ec2-docker folder to build and run the image:
 ```bash
 cd ec2-docker/
-docker image build -t streamlit:circRNA-transformer .
+docker image build -t streamlit:BertSentiment .
 ```
-The Dockerfile is:
+
+## 5. Predict Bitcoin price with historical bitcoin data and sentiment data
+### 5.1 Convert sentiment prediction data into sentiment counts in every 2 hours
+Here is the original data from the previous prediction looks like:
+<p align="center">
+<img src="/imgs/predictedSentiDF.png">
+<br>
+<em>original data from the previous sentiment prediction</em></p>
+
+```python
+y = pd.get_dummies(df.prediction).reset_index()
+df2h = y.groupby(y.dateHour.dt.floor('2H')).sum(numeric_only=True)
+```
+<p align="center">
+<img src="/imgs/predictedSentiCounts2h.png">
+<br>
+<em>original data from the previous sentiment prediction</em></p>
+
+### 5.2 Download historical Bitcoin price data and convert into 2 hour windows
+Use cryptocompare_API to download historical Bitcoin price data in 1 hour interval.
+```python
+def get_BTC_data():
+    # Get the API key from the Quantra file located inside the data_modules folder
+    cryptocompare_API_key = 'cryptocompare_API_key'
+
+    # Set the API key in the cryptocompare object
+    cryptocompare.cryptocompare._set_api_key_parameter(cryptocompare_API_key)
+
+    today = date.today()
+    timedelta(days=0, seconds=0, microseconds=0, milliseconds=0, minutes=0, hours=0, weeks=0)
+    ticker_symbol = 'BTC'
+    currency = 'USD'
+    limit_value = 48
+    exchange_name = 'CCCAGG'
+    data=cryptocompare.get_historical_price_hour(ticker_symbol, currency, limit=limit_value, exchange=exchange_name, toTs=today)
+    df2h = df.groupby(df.dateHour.dt.floor('2h')).mean(numeric_only=True)
+    return df2h
+```
+
+<p align="center">
+<img src="/imgs/BitcoinPriceData2h.png">
+<br>
+<em>Bitcoin Price Data in 2 hour</em></p>
+
+### 5.3 Merge two dataset into one in 2 hour interval.
+
+## 6. Time Series Forecasting of Bitcoin Price
+
+Docker is an open platform for developing, shipping, and running applications. Docker enables you to separate your applications from your infrastructure so you can deliver software quickly. With Docker, you can manage your infrastructure in the same ways you manage your applications. By taking advantage of Docker’s methodologies for shipping, testing, and deploying code quickly, you can significantly reduce the delay between writing code and running it in production. Here I also deployed the trained transformer model using Docker on Amazon EC2 instance.
+
+### 6.1. LSTM model 
+
+```python
+opt = Adam(learning_rate=0.00005)
+model = Sequential()
+model.add(LSTM(128,activation = 'relu', input_shape=(trainX.shape[1], trainX.shape[2]),return_sequences = True))
+model.add(Dropout(0.2))
+model.add(LSTM(64, activation = 'relu',return_sequences = True))
+model.add(Dropout(0.2))
+model.add(Dense(1))
+#model.add(Activation("relu"))#linear
+model.compile(loss='mae', optimizer=opt,metrics=[tf.keras.metrics.MeanSquaredError()])
+model_checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
+    filepath="/content/model/best_model",
+    save_weights_only=True,
+    monitor = "val_loss",
+    mode='min',
+    save_best_only=True)
+# Dataset is trained by using trainX and trainY
+history = model.fit(trainX, trainY, epochs=28, batch_size=32, validation_data=(testX, testY), verbose=2, shuffle=False,callbacks=[model_checkpoint_callback])
+```
+
+<p align="center">
+<img src="/imgs/LSTM_Bitcoin_pred.png">
+<br>
+<em>Actual and predicted Bitcoin price data</em></p>
+
+### 6.2. Run the LSTM model to predic Bitcoin price of next day on AWS EC2
+
+```python
+model = Sequential()
+model.add(LSTM(128,activation = 'relu', input_shape=(train2X.shape[1], train2X.shape[2]),return_sequences = True))
+model.add(Dropout(0.2))
+model.add(LSTM(64, activation = 'relu',return_sequences = True))
+model.add(Dropout(0.2))
+model.add(Dense(1))
+#model.add(Activation("relu"))#linear
+opt = tf.keras.optimizers.legacy.Adam(learning_rate=0.00005)
+model.compile(loss='mae', optimizer=opt,metrics=[tf.keras.metrics.MeanSquaredError()])
+#model = create_model()
+model.load_weights(tf.train.latest_checkpoint("/home/ubuntu/Bert/LSTM_model/"))
+PredictedTest = model.predict(train2X)
+
+train2X = train2X.reshape((train2X.shape[0],train2X.shape[2]))
+PredictedTest = PredictedTest.reshape(PredictedTest.shape[0],PredictedTest.shape[2]) 
+test2Predict = concatenate((PredictedTest, train2X[:, -7:]), axis=1)
+test2Predict = scaler.inverse_transform(test2Predict)
+test2Predict = test2Predict[:,0]
+```
+
+
+## 7. Automation
+
+I would like to build a automatic prediction system, which will automaticly web scraping reddit comments data and Bitcoin price data of that day, and predicti the Bitcoin price next day. Then output the price plot in a dashboard. I will use AWS Lambda, Event bridge and EC2 crontab to achive automation.
+
+### 7.1 AWS Event bridge triger Lambda to scrape the reddit comments and save to AWS S3.
+
+```python
+def data_prep_comments(term, start_time, end_time, filters, limit):
+    if (len(filters) == 0):
+        filters = ['id', 'author', 'created_utc','body', 'permalink', 'subreddit']
+
+    comments = list(api.search_comments(
+        q=term, after=start_time,before=end_time, filter=filters,limit=limit))       
+    return pd.DataFrame(comments)
+    
+def lambda_handler(event, context):
+    df = data_prep_comments("bitcoin", start_time=int(dt.datetime(int(yesterday.strftime("%Y")),int(yesterday.strftime("%m")),int(yesterday.strftime("%d")), 0,1).timestamp()), 
+                            end_time=  int(dt.datetime(int(yesterday.strftime("%Y")),int(yesterday.strftime("%m")),int(yesterday.strftime("%d")), 23,59).timestamp()),filters = [], limit = limit)
+    
+    bucket = 'bert-btc'
+    csv_buffer = StringIO()
+    df.to_csv(csv_buffer)
+    s3_resource = boto3.resource('s3')
+    s3_resource.Object(bucket, f'daily_comments/df{yesterday.strftime("%Y-%m-%d")}.csv').put(Body=csv_buffer.getvalue())
+```
+
+### 7.2 AWS EC2 Crontab automaticly run "main.py".
+Here is the code for Crontab automation.
 ```bash
-# base image
-FROM python:3.7.4-slim-stretch
-
-# exposing default port for streamlit
-EXPOSE 8501
-
-# making directory of app
-WORKDIR /streamlit:circRNA-transformer
-
-# copy over requirements
-COPY requirements.txt ./requirements.txt
-
-# install pip then packages
-RUN pip3 install -r requirements.txt
-
-# copying all files over
-COPY . .
-
-# download model file
-RUN apt-get update
-RUN apt-get  -qq -y install wget
-RUN wget -O ./model/transformer-model.pth "https://www.dropbox.com/s/dazbgx8igqdgew5/model.pth?dl=1"
-
-# cmd to launch app when container is run
-CMD streamlit run ./src/app.py
-
-# streamlit-specific commands for config
-ENV LC_ALL=C.UTF-8
-ENV LANG=C.UTF-8
-RUN mkdir -p /root/.streamlit
-RUN bash -c 'echo -e "\
-[general]\n\
-email = \"\"\n\
-" > /root/.streamlit/credentials.toml'
-
-RUN bash -c 'echo -e "\
-[server]\n\
-enableCORS = false\n\
-" > /root/.streamlit/config.toml'
+crontab -e
+30 2 * * * python3 run main.py
 ```
-Then run the container from the build image:
+main.py
+```python
+if __name__ == "__main__":
+    yest = yesterday.strftime("%Y-%m-%d")
 
-```bash
-docker container run -p 8501:8501 -d streamlit:circRNA-transformer
+    bucket = bucket
+    csv_path = os.path.join(bucket,data_key)
+    df = wr.s3.read_csv(path=csv_path)
+    df.to_csv("df.csv", index=False)
+
+    BATCH_SIZE = 16
+    PRE_TRAINED_MODEL_NAME = 'bert-base-cased'
+    tokenizer = BertTokenizer.from_pretrained(PRE_TRAINED_MODEL_NAME)
+    data_loader = create_data_loader(df, tokenizer, BATCH_SIZE, max_len=512)
+
+    wr.s3.download(path = "s3://bucket/model.pth",local_file='model.pth')
+    trained_model = SentimentClassifier(3)
+    trained_model.load_state_dict(torch.load("model.pth"))#,map_location=torch.device('cpu')))
+
+    y_review_texts, y_pred, y_pred_probs, y_test = get_predictions(trained_model,data_loader)
+    df['prediction'] = y_pred
+    df = df[['body','created_utc','datetime','prediction']]
+    df.to_csv(f"/home/ubuntu/Bert/df_predicted.csv")
+
+    write_key =  f"daily_prediction/df{yest}.csv"
+    write_path = os.path.join(bucket,write_key)
+    wr.s3.to_csv(df,path=write_path)
+
+    df2 = df[['datetime','text','prediction']]
+    write_WC_key = f"daily_wordcloud/df{yest}.csv"
+    write_WC_path = os.path.join(bucket,write_WC_key)
+    wr.s3.to_csv(df2,path=write_WC_path)
+    df_pred_count = prediction_count()
+    wr.s3.to_csv(df_pred_count,path=f's3://bucket/daily_sentiCounts/sentiCount{yest}_2h.csv')
+    word_cloud(df2)
+
+    btcData2h = get_BTC_data()
+    btcData2h.to_csv(f"/home/ubuntu/Bert/dateBTC2h.csv")
+    wr.s3.to_csv(btcData2h,path=f's3://bucket/daily_BTCdata/date{yest}BTC2h.csv')
+
+    dataToday = pd.merge(btcData2h,df_pred_count, on ='dateHour')
+    dataToday.to_csv("/home/ubuntu/Bert/redditBTC_2h.csv")
+    dataPast = pd.read_csv("/home/ubuntu/Bert/redditBTC_20210331_current.csv")
+    dataToday = pd.read_csv("/home/ubuntu/Bert/redditBTC_2h.csv")
+    data = pd.concat([dataPast,dataToday])
+    data.to_csv("/home/ubuntu/Bert/redditBTC_20210331_current.csv",index=False)
+    wr.s3.to_csv(data,path=f's3://bucket/BTCplusReddit/data{yest}.csv')
+    predictPrice()
 ```
+This python script will do the sentimental prediction of reddit comments, upload the result to S3; download the historical bitcoin price data of that day, use LSTM model to predict the price for the next day; output the predicted price plot to a [dashboard](http://18.224.251.221:8080/), as well as the wordcloud of the reddit comment that day.
 
-Now, you can access the Streamlit app at `[<EC2 public IP address>](http://3.142.92.255:8501/)`(EC2 public IP address can be found under "IPv4 Public IP" in the AWS console)!
-
-## 7. Summary
-
-All source code can be found in this Github Repo: [https://github.com/vveizhang/transformer_predict_circRNA](https://github.com/vveizhang/transformer_predict_circRNA)
-
-The structure of this Github Repo shows here
-
-```markdown
-├── Readme.md                            # main notebook
-├── sagemaker                            # AWS Sagemaker folder
-│   ├── source_dir
-│   │    ├── requirements.txt            # libraries needed
-│   │    ├── lambda_handler.py           # AWS lambda function
-│   │    └── train.py                    # PyTorch training/deployment script
-│   └── AWS_circRNA_Transformer.ipynb    # AWS Sagemaker notebook
-|  
-└── ec2-docker                           # Streamlit app folder
-    ├── Dockerfile                       # Dockerfile for the app (container)
-    ├── requirements.txt                 # libraries used by app.py
-    ├── model
-    |   └── download_model.sh            # bash code to download the trained model weights
-    └── src 
-        ├── func.py                      # utility functions used by app.py    
-        └── app.py                       # main code for the Streamlit app
-```
+All source code can be found in this Github Repo: [https://github.com/vveizhang/Bitcoin_Social_Media_Sentiment_Analysis](https://github.com/vveizhang/Bitcoin_Social_Media_Sentiment_Analysis)-
 
 
+## 8. Dashboard
+[dashboard](http://18.224.251.221:8080/)
 
-## 8. References
+<p align="center">
+<img src="/imgs/dashborad.png">
+<br>
+<em>Actual and predicted Bitcoin price data</em></p>
+
+## 9. References
 
 - **Transformers**: [https://jalammar.github.io/illustrated-transformer/](https://jalammar.github.io/illustrated-transformer/)
-- **k-mers**: [Estimating the total genome length of a metagenomic sample using k-mers](https://bmcgenomics.biomedcentral.com/articles/10.1186/s12864-019-5467-x)
+- **Introduction of LSTM**: [Understanding LSTM -- a tutorial into Long Short-Term Memory Recurrent Neural Networks](https://arxiv.org/abs/1909.09586)
 
-- **Introduction of Circular RNAs**: [Biogenesis and Function of Circular RNAs in Health and in Disease](https://www.frontiersin.org/articles/10.3389/fphar.2019.00428/full)
+- **Introduction of Bert**: [BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding](https://arxiv.org/abs/1810.04805)
 
 - **Train and deploy models on AWS SageMaker**: [https://medium.com/@thom.e.lane/streamlit-on-aws-a-fully-featured-solution-for-streamlit-deployments-ba32a81c7460](https://medium.com/@thom.e.lane/streamlit-on-aws-a-fully-featured-solution-for-streamlit-deployments-ba32a81c7460)
 - **Deploy Streamlit app on AWS EC2**: [https://medium.com/usf-msds/deploying-web-app-with-streamlit-docker-and-aws-72b0d4dbcf77](https://medium.com/usf-msds/deploying-web-app-with-streamlit-docker-and-aws-72b0d4dbcf77)
