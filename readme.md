@@ -421,6 +421,14 @@ All source code can be found in this Github Repo: [https://github.com/vveizhang/
 <br>
 <em>Actual and predicted Bitcoin price data</em></p>
 
+
+
+
+<p align="center">
+<img src="/imgs/Wordcloud.png">
+<br>
+<em>Word Cloud</em></p>
+
 ## 9. References
 
 - **Transformers**: [https://jalammar.github.io/illustrated-transformer/](https://jalammar.github.io/illustrated-transformer/)
