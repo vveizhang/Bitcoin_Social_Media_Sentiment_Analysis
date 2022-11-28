@@ -2,21 +2,24 @@
 <br>
 </p>
 
-# Train and deploy Transformer model using PyTorch on Amazon SageMaker to classify non-coding RNA
+# Predicting Bitcoin price with Reddit Sentiment
 
 ## Table of Contents
 
-- [Train and deploy Transformer model using PyTorch on Amazon SageMaker to classify non-coding RNA](#train-and-deploy-transformer-model-using-pytorch-on-amazon-sagemaker-to-classify-non-coding-rna)
+- [Predicting Bitcoin price with Reddit Sentiment](#predicting-bitcoin-price-with-reddit-sentiment)
   - [Table of Contents](#table-of-contents)
   - [1. Introduction](#1-introduction)
-    - [1.1 Transformers](#11-transformers)
-    - [1.2 Amazon SageMaker](#12-amazon-sagemaker)
-  - [1.3 circRNAs](#13-circrnas)
+    - [1.1 Bitcoin](#11-bitcoin)
+    - [1.2 Sentiment Analysis](#12-sentiment-analysis)
+  - [1.3 Bert](#13-bert)
   - [2. Dataset](#2-dataset)
   - [3. Demo](#3-demo)
-  - [4. Training and deployment of GPT-2 on SageMaker](#4-training-and-deployment-of-gpt-2-on-sagemaker)
+  - [4. Training and deployment of Bert on SageMaker](#4-training-and-deployment-of-bert-on-sagemaker)
     - [4.1. Create an Amazon SageMaker notebook instance](#41-create-an-amazon-sagemaker-notebook-instance)
     - [4.2. Training and deployment](#42-training-and-deployment)
+      - [4.2.1 Load the pre-trained Bert model and tokenizer](#421-load-the-pre-trained-bert-model-and-tokenizer)
+      - [4.2.2 Model Hyperparameters Tuning using wandb sweep](#422-model-hyperparameters-tuning-using-wandb-sweep)
+      - [4.2.3 Deploy the model](#423-deploy-the-model)
     - [4.3. The code](#43-the-code)
     - [4.4. Use AWS lambda to invoke the SageMaker endpoint](#44-use-aws-lambda-to-invoke-the-sagemaker-endpoint)
   - [5. Use Postman to test the endpoint](#5-use-postman-to-test-the-endpoint)
@@ -31,9 +34,9 @@ Text classification is a very common task in NLP. It can be used in many applica
 
 ## 1. Introduction
 
-### 1.1 Transformers
+### 1.1 Bitcoin
 
-[Transformers](https://en.wikipedia.org/wiki/Transformer_(machine_learning_model)) are the building block of the current state-of-the-art NLP architecture. It is impossible to explain how transformers work in one paragraph here, but to sum it up, transformers uses a "self-attention" mechanism that computes a representation of a sequence by "learning" the relationship between words at different positions in a sentence. A typical transformers design contains two parts, **encoder** and **decoders**, both working as vectorized representation of word relationships.
+Bitcoin is a digital currency which operates free of any central control or the oversight of banks or governments.It has a distributed network system, where people can control their funds in a transparent way. It is the leading cryptocurrency and has the highest market capitalization among digital currencies. Unlike repeating phenomena like weather, cryptocurrency values do not follow a repeating pattern and mere past value of Bitcoin does not reveal any secret of future Bitcoin value. 
 
 <p align="center">
 <img src="https://machinelearningmastery.com/wp-content/uploads/2021/08/attention_research_1-727x1024.png">
@@ -45,13 +48,13 @@ The Transformer architecture follows an encoder-decoder structure, but does not 
 
 The decoder, on the right half of the architecture, receives the output of the encoder together with the decoder output at the previous time step, to generate an output sequence.
 
-### 1.2 Amazon SageMaker
+### 1.2 Sentiment Analysis
 
-[Amazon SageMaker](https://aws.amazon.com/sagemaker/) is a great tool to train and deploy deep learning models on cloud instances with a fully-managed infrastructure provided by AWS. Within minutes, you can build, train and deploy a model in a Jupyter Notebook and don't have to worry about environment setup, because it comes with many pre-built Conda environments and Docker containers. It's a huge life-saver for data scientists like me.
+Humans follow general sentiments and technical analysis to invest in the market. Hence Sentiment is an important factor, considering people’s sentiment can improve the prediction of bitcoin price.
 
-## 1.3 circRNAs
+## 1.3 Bert
 
-Circular RNAs are diverse RNA species that are found in all live forms from archaea to humans. Although, circRNAs have been discovered over 20 years ago they were initially dismissed for having low abundance or resulting from splicing errors. However, recent advancements in high throughput sequencing revealed the presence of circRNAs in mammalian cells, across various cell lines and many transcripts are abundant and stable. CircRNAs are generated through a mechanism known as back-splicing “tail” to “head” whereby an exon at the 3′end of a gene is back-spliced to an exon at the 5′end of the gene resulting in a circular RNA form. CircRNAs are dispersed throughout the genome. They can arise mainly from exons but circRNAs deriving from inter- or intragenic, and intronic regions as well as antisense sequences have been reported.
+BERT is the first deeply bidirectional, unsupervised language representation, pre-trained using only a plain text corpus. Pre-trained representations can either be context-free or contextual, and contextual representations can further be unidirectional or bidirectional. Context-free models such as word2vec or GloVe generate a single word embedding representation for each word in the vocabulary. BERT represents “bank” using both its previous and next context starting from the very bottom of a deep neural network, making it deeply bidirectional.
 
 <p align="center">
 <img src="https://www.frontiersin.org/files/Articles/445805/fphar-10-00428-HTML/image_m/fphar-10-00428-g001.jpg">
@@ -60,21 +63,30 @@ Circular RNAs are diverse RNA species that are found in all live forms from arch
 
 ## 2. Dataset
 
-The dataset we are going to use in this project is from [here](https://github.com/liuyunho/Circ-ATTEN-MIL).
+I will use PushshiftAPI from psaw package to scrape comments regarding bitcoin from reddit.
 
-CircRNAs sequences were extracted from the circRNADb database and other lncRNAs sequences were extracted from the GENCODE database (lincRNA, antisense, processed transcript, sense intronic, and sense overlapping), respectively. After removing sequences shorter than 200 nucleotides, got 31,939 circRNAs and 19,722 other lncRNAs. 
-
-
+```python
+from psaw import PushshiftAPI 
+api = PushshiftAPI()
+start_date = start_date
+end_date = end_date
+data = data_prep_comments("bitcoin", start_time=int(dt.datetime(start_date).timestamp()), end_time=  int(dt.datetime(end_date).timestamp()),filters = [], limit = 2000000)
+```
+Here shows how the scraped comment data looks like:
+<p align="center">
+<img src="/imgs/Reddit_Comments.png">
+<br>
+<em>scraped reddit comment data</em></p>
 ## 3. Demo
 
-I built an [Online circRNA Classifier](http://3.142.92.255:8501/) using [Streamlit](https://streamlit.io/) running the trained model. You can input or paste any noncoding RNA sequence, the online app will predict if the noncoding RNA is a circRNA or not.
+I built an [Online bitcoin comments sentiment analyzer](http://18.118.15.97:8501/) using [Streamlit](https://streamlit.io/) running the trained model. You can input any comments about Bitcoin, the API will do the sentiment analysis for you.
 
 <p align="center">
-<img src="/imgs/Streamlit.png">
+<img src="/imgs/BertAPI.png">
 <br>
 <em>Image by Author</em></p>
 
-## 4. Training and deployment of GPT-2 on SageMaker
+## 4. Training and deployment of Bert on SageMaker
 
 ### 4.1. Create an Amazon SageMaker notebook instance
 
@@ -86,8 +98,115 @@ Follow this [hands-on tutorial](https://aws.amazon.com/getting-started/hands-on/
 <em>Image by Author</em></p>
 
 ### 4.2. Training and deployment
+#### 4.2.1 Load the pre-trained Bert model and tokenizer
 
+```python
+class SentimentClassifier(nn.Module):
+    def __init__(self, n_classes):
+        super(SentimentClassifier, self).__init__()
+        self.bert = BertModel.from_pretrained("bert-base-cased")
+        self.drop = nn.Dropout(p=0.3)
+        self.out = nn.Linear(self.bert.config.hidden_size, n_classes)
+    def forward(self, input_ids, attention_mask):
+        returned = self.bert(
+        input_ids=input_ids,
+        attention_mask=attention_mask)
+        pooled_output = returned["pooler_output"]
+        output = self.drop(pooled_output)
+        return self.out(output)
+
+PRE_TRAINED_MODEL_NAME = 'bert-base-cased'
+tokenizer = BertTokenizer.from_pretrained(PRE_TRAINED_MODEL_NAME)
+data_loader = create_data_loader(df, tokenizer, BATCH_SIZE, max_len=300)
+```
+#### 4.2.2 Model Hyperparameters Tuning using wandb sweep
 Run [this notebook](https://github.com/vveizhang/transformer_predict_circRNA/blob/main/sagemaker/AWS_circRNA_Transformer.ipynb) on SageMaker to train and deploy the transformer model. Read through it to get more details on the implementation.
+
+```python
+import wandb
+wandb.login()
+sweep_config = {'method': 'grid'}
+metric = {'name': 'val_acc','goal': 'maximize'}
+sweep_config['metric'] = metric
+parameters_dict = {
+    'optimizer': {'values': ['adam', 'sgd',"AdamW"]},
+    'learning_rate': {'values': [5e-3, 1e-4, 3e-5, 6e-5, 1e-5]},
+    'epochs': {'values': [2,4,6,8,10]}}
+
+sweep_config['parameters'] = parameters_dict
+
+sweep_id = wandb.sweep(sweep_config, project="pytorch-sweep")
+
+def train(config=None):
+  with wandb.init(config=config):
+    config = wandb.config
+
+    EPOCHS = config.epochs
+    model = SentimentClassifier(3).to(device)
+    optimizer = build_optimizer(model,config.optimizer,config.learning_rate)
+    total_steps = len(train_data_loader) * EPOCHS
+    scheduler = get_linear_schedule_with_warmup(
+      optimizer,
+      num_warmup_steps=0,
+      num_training_steps=total_steps
+    )
+    loss_fn = nn.CrossEntropyLoss().to(device)
+    history = defaultdict(list)
+    best_accuracy = 0
+    for epoch in range(EPOCHS):
+      print(f'Epoch {epoch + 1}/{EPOCHS}')
+      print('-' * 10)
+      train_acc, train_loss = train_epoch(
+        model,train_data_loader,loss_fn,optimizer,device,scheduler,len(df_train))
+      print(f'Train loss {train_loss} accuracy {train_acc}')
+      val_acc, val_loss = eval_model(model,test_data_loader,loss_fn,device,len(df_test))
+      print(f'Val   loss {val_loss} accuracy {val_acc}')
+        
+wandb.agent(sweep_id, train)
+```
+The wandb will generate a parallel coordinates plot, a parameter importance plot, and a scatter plot when you start a W&B Sweep job. 
+
+<p align="center">
+<img src="/imgs/para_coord-1127.png">
+<br>
+<em>parallel coordinates plot</em></p>
+
+#### 4.2.3 Deploy the model
+
+```python
+def load_model(model_dir=model_dir):    
+    model = SentimentClassifier(3).to(device)
+    with open(model_dir, "rb") as f:
+        model.load_state_dict(torch.load(f))
+    return model.to(device)
+
+def get_predictions(model, data_loader):
+  model = model.eval()
+  review_texts = []
+  predictions = []
+  prediction_probs = []
+  real_values = []
+  with torch.no_grad():
+    for d in data_loader:
+      texts = d["review_text"]
+      input_ids = d["input_ids"].to(device)
+      attention_mask = d["attention_mask"].to(device)
+      targets = d["targets"].to(device)
+      outputs = model(
+        input_ids=input_ids,
+        attention_mask=attention_mask
+      )
+      _, preds = torch.max(outputs, dim=1)
+      review_texts.extend(texts)
+      predictions.extend(preds)
+      prediction_probs.extend(outputs)
+      real_values.extend(targets)
+  predictions = torch.stack(predictions).cpu()
+  prediction_probs = torch.stack(prediction_probs).cpu()
+  real_values = torch.stack(real_values).cpu()
+  return review_texts, predictions, prediction_probs, real_values
+```
+
 
 ### 4.3. The code
 
@@ -116,6 +235,8 @@ def Kmers(sequence):
         Kmers.append(build_kmers(seq,5))
     return Kmers
 ```
+
+
 The `pad_sequences` function will pad all the input sequence into the same length (max_length), the `build_kmers` and `Kmers` functions will be used to build the vocabulary. A DNA sequence can be viewed as a collection of k-mers by breaking the sequence into nucleotide substrings of length k, as illustrated in the Figure.
 
 The `TextTransformer` class in *train.py* is responsible for building a classifier from the scratch. Instead of a positional encoding, I did a positional embedding here. So this model has two embedding steps: word embeddings and position embeddings.
