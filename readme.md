@@ -35,7 +35,7 @@
   - [9. References](#9-references)
   - [Contact](#contact)
 
-Empolyed python, Bert, AWS EC2, lambda, crontab and Event bridge, I build a prediction system that will automatically download reddit comments about bitcoin, sentimental analysis of the comments, then use these sentiment data to predict bitcoin price, and update the result daily to a dashboard here: [dashboard](http://18.224.251.221:8080/)
+Empolyed python, Bert, AWS EC2, docker, lambda, crontab and Event bridge, I build a prediction system that will automatically download reddit comments about bitcoin, sentimental analysis of the comments, then use these sentiment data to predict bitcoin price, and update the result daily to a dashboard here: [dashboard](http://18.224.251.221:8080/)
 
 ## 1. Introduction
 
@@ -98,6 +98,8 @@ I built an [Online bitcoin comments sentiment analyzer](http://18.118.15.97:8501
 
 Follow this [hands-on tutorial](https://aws.amazon.com/getting-started/hands-on/build-train-deploy-machine-learning-model-sagemaker/) from AWS to create an Amazon SageMaker notebook instance. Use "*transformer*" as the **instance name**, and "*ml.t3.medium*" as the **instance type**.
 
+You can also check the finished [Sagemaker notebook](https://github.com/vveizhang/Bitcoin_Social_Media_Sentiment_Analysis/blob/main/src/pyTorchInference.ipynb) here:
+
 ### 4.2. Training and deployment
 #### 4.2.1 Load the pre-trained Bert model and tokenizer
 
@@ -121,7 +123,7 @@ tokenizer = BertTokenizer.from_pretrained(PRE_TRAINED_MODEL_NAME)
 data_loader = create_data_loader(df, tokenizer, BATCH_SIZE, max_len=300)
 ```
 #### 4.2.2 Model Hyperparameters Tuning using wandb sweep
-Run [this notebook](https://github.com/vveizhang/transformer_predict_circRNA/blob/main/sagemaker/AWS_circRNA_Transformer.ipynb) on SageMaker to train and deploy the transformer model. Read through it to get more details on the implementation.
+Run [Sagemaker notebook](https://github.com/vveizhang/Bitcoin_Social_Media_Sentiment_Analysis/blob/main/src/pyTorchInference.ipynb) on SageMaker to train and deploy the transformer model. Read through it to get more details on the implementation.
 
 ```python
 import wandb
