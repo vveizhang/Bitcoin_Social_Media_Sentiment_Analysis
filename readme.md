@@ -13,7 +13,7 @@
     - [1.2 Sentiment Analysis](#12-sentiment-analysis)
   - [1.3 Bert](#13-bert)
   - [2. Dataset](#2-dataset)
-  - [3. Bert Sentiment Analysis Demo](#3-bert-sentiment-analysis-demo)
+  - [3. Bert Sentiment Analysis API Demo](#3-bert-sentiment-analysis-api-demo)
   - [4. Training and deployment of Bert](#4-training-and-deployment-of-bert)
     - [4.1. Create an Amazon SageMaker notebook instance](#41-create-an-amazon-sagemaker-notebook-instance)
     - [4.2. Training and deployment](#42-training-and-deployment)
@@ -82,7 +82,7 @@ Here shows how the scraped comment data looks like:
 <br>
 <em>scraped reddit comment data</em></p>
 
-## 3. Bert Sentiment Analysis Demo
+## 3. Bert Sentiment Analysis API Demo
 
 I built an [Online bitcoin comments sentiment analyzer](http://18.118.15.97:8501/) using [Streamlit](https://streamlit.io/) running the trained model. You can input any comments about Bitcoin, the API will do the sentiment analysis for you.
 
