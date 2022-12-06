@@ -219,8 +219,10 @@ ssh -i ec2-gpt2-streamlit-app.pem ec2-user@your-instance-DNS-address.us-east-1.c
 ```
 
 Then, copy the code into the cloud using git:
-
+```bash
 git clone https://github.com/vveizhang/Bitcoin_Social_Media_Sentiment_Analysis.git
+```
+
 Afterwards, go into the ec2-docker folder to build and run the image:
 ```bash
 cd ec2-docker/
