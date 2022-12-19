@@ -1,3 +1,4 @@
+# import libraries
 import pandas as pd
 import cryptocompare
 import datetime as dt
@@ -13,7 +14,7 @@ def get_BTC_data():
     today = date.today()
     timedelta(days=0, seconds=0, microseconds=0, milliseconds=0, minutes=0, hours=0, weeks=0)
     yesterday = today - timedelta(days = 1)
-    #yest = yesterday.strftime("%Y-%m-%d")
+
     # Define the ticker symbol and other details
     ticker_symbol = 'BTC'
     currency = 'USD'
@@ -21,6 +22,7 @@ def get_BTC_data():
     exchange_name = 'CCCAGG'
     data=cryptocompare.get_historical_price_hour(ticker_symbol, currency, limit=limit_value, exchange=exchange_name, toTs=today)
 
+    # convert the data into data frame
     df = pd.DataFrame.from_dict(data)
     dateHour = []
     for i in df['time']:

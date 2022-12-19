@@ -1,3 +1,4 @@
+# import libraries
 import pandas as pd
 import numpy as np
 from PIL import Image
@@ -17,6 +18,7 @@ from transformers import AutoTokenizer, TFAutoModelForSequenceClassification, Da
 from transformers import BertModel, BertTokenizer, AdamW, get_linear_schedule_with_warmup
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+# construct sentiment classifier model using nn.Module
 class SentimentClassifier(nn.Module):
     def __init__(self, n_classes):
         super(SentimentClassifier, self).__init__()
@@ -31,12 +33,14 @@ class SentimentClassifier(nn.Module):
         output = self.drop(pooled_output)
         return self.out(output)
 
+# define the function to load saved model
 def load_model(model_dir):    
     model = SentimentClassifier(3).to(device)
     with open(model_dir, "rb") as f:
         model.load_state_dict(torch.load(f))
     return model.to(device)
 
+# Define MyDataset from class Dataset
 class redditDataset(Dataset):
     def __init__(self, reviews, targets, tokenizer, max_len=512): #,):
         self.reviews = reviews
@@ -65,6 +69,7 @@ class redditDataset(Dataset):
     'targets': torch.tensor(target, dtype=torch.long)
     }
 
+# define customer data loader
 def create_data_loader(df, tokenizer, batch_size,max_len=512):
     ds = redditDataset(
     reviews=df.body.to_numpy(),
@@ -77,6 +82,7 @@ def create_data_loader(df, tokenizer, batch_size,max_len=512):
     num_workers=1
 )
 
+# define function to do the prediction
 def get_predictions(model, data_loader):
     model = model.eval()
     review_texts = []

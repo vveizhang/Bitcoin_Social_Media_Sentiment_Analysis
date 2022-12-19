@@ -1,3 +1,4 @@
+# import libraries
 from math import sqrt
 from numpy import concatenate
 from matplotlib import pyplot
@@ -22,6 +23,7 @@ import plotly
 import plotly.graph_objects as go
 import plotly.express as px
 
+# Convert a Time Series to a Supervised Learning Problem 
 def series_to_supervised(data, n_in=1, n_out=1, dropnan=True):
 	n_vars = 1 if type(data) is list else data.shape[1]
 	df = pd.DataFrame(data)
@@ -45,17 +47,6 @@ def series_to_supervised(data, n_in=1, n_out=1, dropnan=True):
 		agg.dropna(inplace=True)
 	return agg
 
-# def create_model():
-#     model = Sequential()
-#     model.add(LSTM(128,activation = 'relu', input_shape=(train2X.shape[1], train2X.shape[2]),return_sequences = True))
-#     model.add(Dropout(0.2))
-#     model.add(LSTM(64, activation = 'relu',return_sequences = True))
-#     model.add(Dropout(0.2))
-#     model.add(Dense(1))
-#     #model.add(Activation("relu"))#linear
-#     opt = tf.keras.optimizers.legacy.Adam(learning_rate=0.00005)
-#     model.compile(loss='mae', optimizer=opt,metrics=[tf.keras.metrics.MeanSquaredError()])
-#     return model
 
 def predictPrice():
     today = date.today()
