@@ -70,6 +70,7 @@ BERT is the first deeply bidirectional, unsupervised language representation, pr
 I will use PushshiftAPI from psaw package to scrape comments regarding bitcoin from reddit.
 
 ```python
+# import PushshiftAPI and download all the comments regarding bitcoin in the given date range
 from psaw import PushshiftAPI 
 api = PushshiftAPI()
 start_date = start_date
@@ -104,6 +105,7 @@ You can also check the finished [Sagemaker notebook](https://github.com/vveizhan
 #### 4.2.1 Load the pre-trained Bert model and tokenizer
 
 ```python
+# construct sentiment classifier model using nn.Module
 class SentimentClassifier(nn.Module):
     def __init__(self, n_classes):
         super(SentimentClassifier, self).__init__()
@@ -118,6 +120,7 @@ class SentimentClassifier(nn.Module):
         output = self.drop(pooled_output)
         return self.out(output)
 
+# load pretrained BERT model
 PRE_TRAINED_MODEL_NAME = 'bert-base-cased'
 tokenizer = BertTokenizer.from_pretrained(PRE_TRAINED_MODEL_NAME)
 data_loader = create_data_loader(df, tokenizer, BATCH_SIZE, max_len=300)
@@ -126,6 +129,7 @@ data_loader = create_data_loader(df, tokenizer, BATCH_SIZE, max_len=300)
 Run [Sagemaker notebook](https://github.com/vveizhang/Bitcoin_Social_Media_Sentiment_Analysis/blob/main/src/pyTorchInference.ipynb) on SageMaker to train and deploy the transformer model. Read through it to get more details on the implementation.
 
 ```python
+# import wandb and configure sweep, metric will be validation accurary, try different optimizer and learning rates and epochs.
 import wandb
 wandb.login()
 sweep_config = {'method': 'grid'}
@@ -137,9 +141,10 @@ parameters_dict = {
     'epochs': {'values': [2,4,6,8,10]}}
 
 sweep_config['parameters'] = parameters_dict
-
 sweep_id = wandb.sweep(sweep_config, project="pytorch-sweep")
 
+
+# define the model training and validating function
 def train(config=None):
   with wandb.init(config=config):
     config = wandb.config
@@ -177,12 +182,14 @@ The wandb will generate a parallel coordinates plot, a parameter importance plot
 #### 4.2.3 Deploy the model
 
 ```python
+# define function to load saved model
 def load_model(model_dir=model_dir):    
     model = SentimentClassifier(3).to(device)
     with open(model_dir, "rb") as f:
         model.load_state_dict(torch.load(f))
     return model.to(device)
 
+# define function to make prediction using the saved model
 def get_predictions(model, data_loader):
   model = model.eval()
   review_texts = []
@@ -238,6 +245,7 @@ Here is the original data from the previous prediction looks like:
 <em>original data from the previous sentiment prediction</em></p>
 
 ```python
+# get the sentiment counts and convert into 2 hours interval time series
 y = pd.get_dummies(df.prediction).reset_index()
 df2h = y.groupby(y.dateHour.dt.floor('2H')).sum(numeric_only=True)
 ```
@@ -249,6 +257,7 @@ df2h = y.groupby(y.dateHour.dt.floor('2H')).sum(numeric_only=True)
 ### 5.2 Download historical Bitcoin price data and convert into 2 hour windows
 Use cryptocompare_API to download historical Bitcoin price data in 1 hour interval.
 ```python
+# define the function to get historical bitcoin data using cryptocompare API
 def get_BTC_data():
     # Get the API key from the Quantra file located inside the data_modules folder
     cryptocompare_API_key = 'cryptocompare_API_key'
@@ -281,6 +290,7 @@ Docker is an open platform for developing, shipping, and running applications. D
 ### 6.1. LSTM model 
 
 ```python
+# define the LSTM model using Tensorflow
 opt = Adam(learning_rate=0.00005)
 model = Sequential()
 model.add(LSTM(128,activation = 'relu', input_shape=(trainX.shape[1], trainX.shape[2]),return_sequences = True))
@@ -308,6 +318,7 @@ history = model.fit(trainX, trainY, epochs=28, batch_size=32, validation_data=(t
 ### 6.2. Run the LSTM model to predic Bitcoin price of next day on AWS EC2
 
 ```python
+# run the LSTM model to make the time series forecasting
 model = Sequential()
 model.add(LSTM(128,activation = 'relu', input_shape=(train2X.shape[1], train2X.shape[2]),return_sequences = True))
 model.add(Dropout(0.2))
@@ -321,6 +332,7 @@ model.compile(loss='mae', optimizer=opt,metrics=[tf.keras.metrics.MeanSquaredErr
 model.load_weights(tf.train.latest_checkpoint("/home/ubuntu/Bert/LSTM_model/"))
 PredictedTest = model.predict(train2X)
 
+# convert the predicted result back by scaler.inverse_transform
 train2X = train2X.reshape((train2X.shape[0],train2X.shape[2]))
 PredictedTest = PredictedTest.reshape(PredictedTest.shape[0],PredictedTest.shape[2]) 
 test2Predict = concatenate((PredictedTest, train2X[:, -7:]), axis=1)
@@ -336,6 +348,7 @@ I would like to build a automatic prediction system, which will automaticly web 
 ### 7.1 AWS Event bridge triger Lambda to scrape the reddit comments and save to AWS S3.
 
 ```python
+# define the Lambda function to download reddit comments regarding bitcoin daily
 def data_prep_comments(term, start_time, end_time, filters, limit):
     if (len(filters) == 0):
         filters = ['id', 'author', 'created_utc','body', 'permalink', 'subreddit']
@@ -358,11 +371,13 @@ def lambda_handler(event, context):
 ### 7.2 AWS EC2 Crontab automaticly run "main.py".
 Here is the code for Crontab automation.
 ```bash
+# automation of the python script running using crontab
 crontab -e
 30 2 * * * python3 run main.py
 ```
 main.py
 ```python
+# define the main function to get comment data, make sentiment analysis, convert and combine data, get historical bitcoin data, make the prediction and upload the prediction to dashboard
 if __name__ == "__main__":
     yest = yesterday.strftime("%Y-%m-%d")
 
