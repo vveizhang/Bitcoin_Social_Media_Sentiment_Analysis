@@ -85,7 +85,7 @@ Here shows how the scraped comment data looks like:
 
 ## 3. Bert Sentiment Analysis API Demo
 
-I built an [Online bitcoin comments sentiment analyzer](http://3.16.206.59:8501/) using [Streamlit](https://streamlit.io/) running the trained model. You can input any comments about Bitcoin, the API will do the sentiment analysis for you.
+I built an [Online bitcoin comments sentiment analyzer](http://18.118.187.219:8501/) using [Streamlit](https://streamlit.io/) running the trained model. You can input any comments about Bitcoin, the API will do the sentiment analysis for you.
 
 <p align="center">
 <img src="/imgs/BertAPI.png">
