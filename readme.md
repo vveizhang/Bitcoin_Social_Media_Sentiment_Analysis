@@ -35,7 +35,7 @@
   - [9. References](#9-references)
   - [Contact](#contact)
 
-Empolyed python, Bert, AWS EC2, docker, lambda, crontab and Event bridge, I build a prediction system that will automatically download reddit comments about bitcoin, sentimental analysis of the comments, then use these sentiment data to predict bitcoin price, and update the result daily to a dashboard here: [dashboard](http://3.133.127.58:8080/)
+Empolyed python, Bert, AWS EC2, docker, lambda, crontab and Event bridge, I build a prediction system that will automatically download reddit comments about bitcoin, sentimental analysis of the comments, then use these sentiment data to predict bitcoin price, and update the result daily to a dashboard here: [dashboard](http://3.138.178.14:8080/)
 
 ## 1. Introduction
 
