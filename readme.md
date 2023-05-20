@@ -35,7 +35,7 @@
   - [9. References](#9-references)
   - [Contact](#contact)
 
-Empolyed python, Bert, AWS EC2, docker, lambda, crontab and Event bridge, I build a prediction system that will automatically download reddit comments about bitcoin, sentimental analysis of the comments, then use these sentiment data to predict bitcoin price, and update the result daily to a dashboard here: [dashboard](http://3.138.178.14:8080/)
+Empolyed python, Bert, AWS EC2, docker, lambda, crontab and Event bridge, I build a prediction system that will automatically download reddit comments about bitcoin, sentimental analysis of the comments, then use these sentiment data to predict bitcoin price, and update the result daily to a dashboard here: [dashboard](http://3.145.73.72:8080/)
 
 ## 1. Introduction
 
@@ -85,7 +85,7 @@ Here shows how the scraped comment data looks like:
 
 ## 3. Bert Sentiment Analysis API Demo
 
-I built an [Online bitcoin comments sentiment analyzer](http://18.188.224.36:8501/) using [Streamlit](https://streamlit.io/) running the trained model. You can input any comments about Bitcoin, the API will do the sentiment analysis for you.
+I built an [Online bitcoin comments sentiment analyzer](http://3.144.212.91:8501/) using [Streamlit](https://streamlit.io/) running the trained model. You can input any comments about Bitcoin, the API will do the sentiment analysis for you.
 
 <p align="center">
 <img src="/imgs/BertAPI.png">
@@ -425,13 +425,13 @@ if __name__ == "__main__":
     wr.s3.to_csv(data,path=f's3://bucket/BTCplusReddit/data{yest}.csv')
     predictPrice()
 ```
-This python script will do the sentimental prediction of reddit comments, upload the result to S3; download the historical bitcoin price data of that day, use LSTM model to predict the price for the next day; output the predicted price plot to a [dashboard](http://3.133.127.58:8080/), as well as the wordcloud of the reddit comment that day.
+This python script will do the sentimental prediction of reddit comments, upload the result to S3; download the historical bitcoin price data of that day, use LSTM model to predict the price for the next day; output the predicted price plot to a [dashboard](http://3.145.73.72:8080/), as well as the wordcloud of the reddit comment that day.
 
 All source code can be found in this Github Repo: [https://github.com/vveizhang/Bitcoin_Social_Media_Sentiment_Analysis](https://github.com/vveizhang/Bitcoin_Social_Media_Sentiment_Analysis)-
 
 
 ## 8. Dashboard
-[dashboard](http://3.133.127.58:8080/)
+[dashboard](http://3.145.73.72:8080/)
 
 <p align="center">
 <img src="/imgs/dashborad.png">
