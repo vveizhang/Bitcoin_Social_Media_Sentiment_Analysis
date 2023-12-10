@@ -285,7 +285,7 @@ def get_BTC_data():
 
 ## 6. Time Series Forecasting of Bitcoin Price
 
-Docker is an open platform for developing, shipping, and running applications. Docker enables you to separate your applications from your infrastructure so you can deliver software quickly. With Docker, you can manage your infrastructure in the same ways you manage your applications. By taking advantage of Docker’s methodologies for shipping, testing, and deploying code quickly, you can significantly reduce the delay between writing code and running it in production. Here I also deployed the trained transformer model using Docker on Amazon EC2 instance.
+
 
 ### 6.1. LSTM model 
 
