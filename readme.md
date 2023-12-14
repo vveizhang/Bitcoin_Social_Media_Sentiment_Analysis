@@ -110,11 +110,28 @@ You can also check the finished [Sagemaker notebook](https://github.com/vveizhan
 # construct sentiment classifier model using nn.Module
 class SentimentClassifier(nn.Module):
     def __init__(self, n_classes):
+        """
+        Sentiment Classifier using BERT model.
+
+        Args:
+            num_classes (int): Number of classes for the output layer.
+            bert_model (str): Pretrained BERT model to use.
+        """
         super(SentimentClassifier, self).__init__()
         self.bert = BertModel.from_pretrained("bert-base-cased")
         self.drop = nn.Dropout(p=0.3)
         self.out = nn.Linear(self.bert.config.hidden_size, n_classes)
     def forward(self, input_ids, attention_mask):
+        """
+        Forward pass for the sentiment classifier.
+
+        Args:
+            input_ids: Tensor of input IDs.
+            attention_mask: Tensor representing attention mask.
+
+        Returns:
+            Tensor: Output from the classifier.
+        """
         returned = self.bert(
         input_ids=input_ids,
         attention_mask=attention_mask)
