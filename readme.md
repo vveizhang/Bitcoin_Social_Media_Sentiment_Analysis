@@ -373,6 +373,20 @@ I would like to build a automatic prediction system, which will automaticly web 
 ```python
 # define the Lambda function to download reddit comments regarding bitcoin daily
 def data_prep_comments(term, start_time, end_time, filters, limit):
+    """
+    Prepare DataFrame of comments from Reddit.
+
+    Args:
+        api: PushshiftAPI instance.
+        term (str): Search term.
+        start_time (int): Start timestamp.
+        end_time (int): End timestamp.
+        filters (list): List of filters for comments.
+        limit (int): Limit for the number of comments.
+
+    Returns:
+        DataFrame: DataFrame containing comments.
+    """
     if (len(filters) == 0):
         filters = ['id', 'author', 'created_utc','body', 'permalink', 'subreddit']
 
@@ -381,6 +395,19 @@ def data_prep_comments(term, start_time, end_time, filters, limit):
     return pd.DataFrame(comments)
     
 def lambda_handler(event, context):
+    """
+    AWS Lambda handler function.
+
+    Args:
+        event: AWS event.
+        context: AWS context.
+        api: PushshiftAPI instance.
+        bucket_name (str): S3 bucket name.
+        limit (int): Limit for the number of comments.
+
+    Returns:
+        None
+    """
     df = data_prep_comments("bitcoin", start_time=int(dt.datetime(int(yesterday.strftime("%Y")),int(yesterday.strftime("%m")),int(yesterday.strftime("%d")), 0,1).timestamp()), 
                             end_time=  int(dt.datetime(int(yesterday.strftime("%Y")),int(yesterday.strftime("%m")),int(yesterday.strftime("%d")), 23,59).timestamp()),filters = [], limit = limit)
     
