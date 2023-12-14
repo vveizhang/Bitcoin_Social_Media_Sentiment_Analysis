@@ -37,7 +37,7 @@
 
 Empolyed python, Bert, AWS EC2, docker, lambda, crontab and Event bridge, I build a prediction system that will automatically download reddit comments about bitcoin, sentimental analysis of the comments, then use these sentiment data to predict bitcoin price, and update the result daily to a dashboard here: [dashboard](http://3.145.73.72:8080/)
 
-##Update: Since reddit disabled third-party API, the official API doesn't have the function required, the dashboard is discontinued.
+## Update: Since reddit disabled third-party API, the official API doesn't have the function required, the dashboard is discontinued.
 
 ## 1. Introduction
 
