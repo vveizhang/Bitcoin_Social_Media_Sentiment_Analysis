@@ -1,3 +1,4 @@
+# import libraries
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -23,7 +24,7 @@ class SentimentClassifier(nn.Module):
         self.drop = nn.Dropout(p=0.3)
         self.out = nn.Linear(self.bert.config.hidden_size, n_classes)
     def forward(self, input_ids, attention_mask):
-    """
+        """
         Forward pass for the sentiment classifier.
 
         Args:
@@ -73,12 +74,3 @@ def run_model(input, model):
         result = result.cpu().numpy()[0]
         return(result)
 
-#Serialize the prediction result into the desired response content type
-# def output_fn(prediction, accept="text/plain"):
-#     #logger.info('Serializing the generated output.')
-#     result = np.round(prediction.cpu().item())
-# #     if result == 1.0:
-# #         response = "Your inqury sequence IS circRNAs"
-# #     else:
-# #         response = "Your inqury sequence IS NOT circRNAs"    
-#     return str(result)
