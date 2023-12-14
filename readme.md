@@ -154,6 +154,8 @@ wandb.login()
 sweep_config = {'method': 'grid'}
 metric = {'name': 'val_acc','goal': 'maximize'}
 sweep_config['metric'] = metric
+
+# Defien the hyperparameters to fine tuning
 parameters_dict = {
     'optimizer': {'values': ['adam', 'sgd',"AdamW"]},
     'learning_rate': {'values': [5e-3, 1e-4, 3e-5, 6e-5, 1e-5]},
@@ -319,6 +321,8 @@ model.add(Dropout(0.2))
 model.add(Dense(1))
 #model.add(Activation("relu"))#linear
 model.compile(loss='mae', optimizer=opt,metrics=[tf.keras.metrics.MeanSquaredError()])
+
+# Model checkpoint callback
 model_checkpoint_callback = tf.keras.callbacks.ModelCheckpoint(
     filepath="/content/model/best_model",
     save_weights_only=True,
